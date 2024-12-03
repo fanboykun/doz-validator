@@ -26,7 +26,7 @@ type Inputs<T> = {
 }
 
 export class Rule {
-  static string(i: any) {
+  static string(i: any): RULE_RESULT<string> {
     if(typeof i === "string" && i.length > 0) {
       return [true, i, undefined] as VALID_RULS_RESULT<string>;
     }
@@ -235,7 +235,7 @@ export class Rule {
     return [true, i, undefined] as VALID_RULS_RESULT<T[]>;
   }
 
-  static arrayOf(i: any, validator: (item: any) => RULE_RESULT<unknown>) {
+  static arrayOf(i: any, validator: (item: any) => RULE_RESULT<unknown>): RULE_RESULT<any[]> {
     if(!Array.isArray(i)) {
       return [false, i, "$ must be array"] as INVALID_RULS_RESULT;
     }
@@ -263,7 +263,7 @@ export class Rule {
     return [true, i, undefined] as VALID_RULS_RESULT<object>;
   }
 
-  static shape<T extends object>(i: any, shape: { [K in keyof T]: (value: unknown) => RULE_RESULT<unknown> }) {
+  static shape<T extends object>(i: any, shape: { [K in keyof T]: (value: unknown) => RULE_RESULT<unknown> }): RULE_RESULT<T> {
     if(typeof i !== "object" || i === null) {
       return [false, i, "$ must be object"] as INVALID_RULS_RESULT;
     }
@@ -297,7 +297,7 @@ export class Rule {
     };
   }
 
-  static optional<T>(validator: (value: any) => RULE_RESULT<T>) {
+  static optional<T>(validator: (value: any) => RULE_RESULT<T>): (value: any) => RULE_RESULT<T | undefined> {
     return (value: any): RULE_RESULT<T | undefined> => {
       if (value === undefined) {
         return [true, undefined, undefined] as VALID_RULS_RESULT<undefined>;
@@ -362,7 +362,7 @@ export class Rule {
     return [false, i, `$ must be instance of ${constructorNames}`] as INVALID_RULS_RESULT;
   }
 
-  static uuidv4(i: any) {
+  static uuidv4(i: any): RULE_RESULT<string> {
     if (typeof i !== "string") {
       return [false, i, "$ must be string"] as INVALID_RULS_RESULT;
     }
