@@ -3,8 +3,7 @@
   "specifiers": {
     "jsr:@std/assert@^1.0.8": "1.0.8",
     "jsr:@std/expect@*": "1.0.8",
-    "jsr:@std/internal@^1.0.5": "1.0.5",
-    "jsr:@std/semver@0.218.2": "0.218.2"
+    "jsr:@std/internal@^1.0.5": "1.0.5"
   },
   "jsr": {
     "@std/assert@1.0.8": {
@@ -22,9 +21,6 @@
     },
     "@std/internal@1.0.5": {
       "integrity": "54a546004f769c1ac9e025abd15a76b6671ddc9687e2313b67376125650dc7ba"
-    },
-    "@std/semver@0.218.2": {
-      "integrity": "10517b0888e42d284cf84fb7dddbdc322de09fabeb5ef5b5a87224347390839d"
     }
   },
   "workspace": {
