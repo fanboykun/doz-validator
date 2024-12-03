@@ -33,7 +33,7 @@ export class Rule {
     return [false, i, "$ must be string"] as INVALID_RULS_RESULT;
   }
 
-  static number(i: any, opt?: { min?: number, max?: number}) {
+  static number(i: any, opt?: { min?: number, max?: number}): RULE_RESULT<number> {
     if(typeof i !== "number" || isNaN(i)) {
       return [false, i, "$ must be number"] as INVALID_RULS_RESULT;
     }
@@ -48,14 +48,14 @@ export class Rule {
     return [true, i, undefined] as VALID_RULS_RESULT<number>;
   }
 
-  static boolean(i: any) {
+  static boolean(i: any): RULE_RESULT<boolean> {
     if(typeof i === "boolean") {
       return [true, i, undefined] as VALID_RULS_RESULT<boolean>;
     }
     return [false, i, "$ must be boolean"] as INVALID_RULS_RESULT;
   }
 
-  static array(i: any, opt?: { minLength?: number, maxLength?: number }) {
+  static array(i: any, opt?: { minLength?: number, maxLength?: number }): RULE_RESULT<any[]> {
     if(!Array.isArray(i)) {
       return [false, i, "$ must be array"] as INVALID_RULS_RESULT;
     }
@@ -70,7 +70,7 @@ export class Rule {
     return [true, i, undefined] as VALID_RULS_RESULT<any[]>;
   }
 
-  static email(i: any) {
+  static email(i: any): RULE_RESULT<string> {
     if(typeof i !== "string") {
       return [false, i, "$ must be string"] as INVALID_RULS_RESULT;
     }
@@ -81,14 +81,14 @@ export class Rule {
     return [true, i, undefined] as VALID_RULS_RESULT<string>;
   }
 
-  static object(i: any) {
+  static object(i: any): RULE_RESULT<object> {
     if(typeof i !== "object" || i === null || Array.isArray(i)) {
       return [false, i, "$ must be object"] as INVALID_RULS_RESULT;
     }
     return [true, i, undefined] as VALID_RULS_RESULT<object>;
   }
 
-  static date(i: any) {
+  static date(i: any): RULE_RESULT<Date> {
     const date = new Date(i);
     if(isNaN(date.getTime())) {
       return [false, i, "$ must be valid date"] as INVALID_RULS_RESULT;
@@ -103,7 +103,7 @@ export class Rule {
     requireLowercase?: boolean,
     requireNumbers?: boolean,
     requireSpecialChars?: boolean
-  }) {
+  }): RULE_RESULT<string> {
     if(typeof i !== "string") {
       return [false, i, "$ must be string"] as INVALID_RULS_RESULT;
     }
@@ -140,7 +140,7 @@ export class Rule {
     return [true, i, undefined] as VALID_RULS_RESULT<string>;
   }
 
-  static regex(i: any, pattern: RegExp, errorMessage?: string) {
+  static regex(i: any, pattern: RegExp, errorMessage?: string): RULE_RESULT<string> {
     if(typeof i !== "string") {
       return [false, i, "$ must be string"] as INVALID_RULS_RESULT;
     }
@@ -150,7 +150,7 @@ export class Rule {
     return [true, i, undefined] as VALID_RULS_RESULT<string>;
   }
 
-  static dateBetween(i: any, opt: { start: Date | string, end: Date | string }) {
+  static dateBetween(i: any, opt: { start: Date | string, end: Date | string }): RULE_RESULT<Date> {
     const dateResult = Rule.date(i);
     if(!dateResult[0]) {
       return dateResult;
@@ -174,7 +174,7 @@ export class Rule {
   static file(i: any, opt?: {
     maxSizeInBytes?: number,
     allowedExtensions?: string[]
-  }) {
+  }): RULE_RESULT<File> {
     if(!(i instanceof File)) {
       return [false, i, "$ must be a File"] as INVALID_RULS_RESULT;
     }
@@ -194,7 +194,7 @@ export class Rule {
     return [true, i, undefined] as VALID_RULS_RESULT<File>;
   }
 
-  static url(i: any, opt?: { protocols?: string[] }) {
+  static url(i: any, opt?: { protocols?: string[] }): RULE_RESULT<URL> {
     if(typeof i !== "string") {
       return [false, i, "$ must be string"] as INVALID_RULS_RESULT;
     }
@@ -210,7 +210,7 @@ export class Rule {
     }
   }
 
-  static mime(i: any, allowedMimeTypes: string[]) {
+  static mime(i: any, allowedMimeTypes: string[]): RULE_RESULT<File> {
     if(!(i instanceof File)) {
       return [false, i, "$ must be a File"] as INVALID_RULS_RESULT;
     }
@@ -222,7 +222,7 @@ export class Rule {
     return [true, i, undefined] as VALID_RULS_RESULT<File>;
   }
 
-  static arrayIncludes<T>(i: any, items: T[]) {
+  static arrayIncludes<T>(i: any, items: T[]): RULE_RESULT<T[]> {
     if(!Array.isArray(i)) {
       return [false, i, "$ must be array"] as INVALID_RULS_RESULT;
     }
@@ -250,7 +250,7 @@ export class Rule {
     return [true, i, undefined] as VALID_RULS_RESULT<any[]>;
   }
 
-  static hasProperties(i: any, properties: string[]) {
+  static hasProperties(i: any, properties: string[]): RULE_RESULT<object> {
     if(typeof i !== "object" || i === null) {
       return [false, i, "$ must be object"] as INVALID_RULS_RESULT;
     }
@@ -288,7 +288,7 @@ export class Rule {
     return [true, i, undefined] as VALID_RULS_RESULT<T>;
   }
 
-  static nullable<T>(validator: (value: any) => RULE_RESULT<T>) {
+  static nullable<T>(validator: (value: any) => RULE_RESULT<T>): (value: any) => RULE_RESULT<T | null> {
     return (value: any): RULE_RESULT<T | null> => {
       if (value === null) {
         return [true, null, undefined] as VALID_RULS_RESULT<null>;
@@ -306,7 +306,7 @@ export class Rule {
     };
   }
 
-  static ip(i: any, allowLocal = true) {
+  static ip(i: any, allowLocal = true): RULE_RESULT<string> {
     if (typeof i !== "string") {
       return [false, i, "$ must be string"] as INVALID_RULS_RESULT;
     }
@@ -352,10 +352,10 @@ export class Rule {
     return [true, i, undefined] as VALID_RULS_RESULT<string>;
   }
 
-  static instanceOf(i: any, ...constructors: (new (...args: any[]) => any)[]) {
+  static instanceOf<T>(i: any, ...constructors: (new (...args: any[]) => T)[]): RULE_RESULT<T> {
     for (const constructor of constructors) {
       if (i instanceof constructor) {
-        return [true, i, undefined] as VALID_RULS_RESULT<any>;
+        return [true, i, undefined] as VALID_RULS_RESULT<T>;
       }
     }
     const constructorNames = constructors.map(c => c.name).join(" or ");
