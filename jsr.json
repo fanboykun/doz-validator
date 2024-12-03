@@ -1,6 +1,6 @@
 {
   "name": "@fanboykun/doz-validator",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "exports": "./src/main.ts",
   "description": "A powerful, type-safe validation library for TypeScript with zero dependencies",
   "keywords": [
