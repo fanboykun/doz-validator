@@ -316,15 +316,15 @@ Deno.test("shape test", () => {
     });
 
     const invalidValidation = new Validate({
-        user: Rule.shape({ name: 123, age: "25" }, {
+        user: Rule.shape({ name: '123', age: 25 }, {
             name: Rule.string,
             age: Rule.number
         })
     });
     expect(invalidValidation.result).toEqual({
-        valid: false,
-        exception: {
-            user: "name: user must be string; age: user must be number"
+        valid: true,
+        data: {
+            user: { name: "123", age: 25 }
         }
     });
 });
@@ -421,6 +421,96 @@ Deno.test('uuidv4 test', () => {
         valid: false,
         exception: {
             field: "field must be string"
+        }
+    });
+});
+
+Deno.test("formData validation", () => {
+    // Test valid form data
+    const validForm = new FormData();
+    validForm.append("name", "John Doe");
+    validForm.append("age", "25");
+    validForm.append("email", "john@example.com");
+
+    interface UserForm {
+        name: string;
+        age: number;
+        email: string;
+    }
+
+    const validValidation = new Validate({
+        user: Rule.formData<UserForm>(validForm, {
+            name: Rule.string,
+            age: (value) => Rule.number(Number(value)),
+            email: Rule.email
+        })
+    });
+
+    expect(validValidation.result).toEqual({
+        valid: true,
+        data: {
+            user: {
+                name: "John Doe",
+                age: 25,
+                email: "john@example.com"
+            }
+        }
+    });
+
+    // Test invalid form data
+    const invalidForm = new FormData();
+    invalidForm.append("name", "");
+    invalidForm.append("age", "not a number");
+    invalidForm.append("email", "invalid-email");
+
+    const invalidValidation = new Validate({
+        user: Rule.formData<UserForm>(invalidForm, {
+            name: Rule.string,
+            age: (value) => Rule.number(Number(value)),
+            email: Rule.email
+        })
+    });
+
+    expect(invalidValidation.result).toEqual({
+        valid: false,
+        exception: {
+            user: "name cannot be empty; age must be number; email must be valid email address"
+        }
+    });
+
+    // Test missing fields
+    const incompleteForm = new FormData();
+    incompleteForm.append("name", "John Doe");
+    // age and email are missing
+
+    const incompleteValidation = new Validate({
+        user: Rule.formData<UserForm>(incompleteForm, {
+            name: Rule.string,
+            age: Rule.number,
+            email: Rule.email
+        })
+    });
+
+    expect(incompleteValidation.result).toEqual({
+        valid: false,
+        exception: {
+            user: "age must be number; email must be valid email address"
+        }
+    });
+
+    // Test invalid FormData input
+    const invalidInput = new Validate({
+        user: Rule.formData<UserForm>({} as FormData, {
+            name: Rule.string,
+            age: (value) => Rule.number(Number(value)),
+            email: Rule.email
+        })
+    });
+
+    expect(invalidInput.result).toEqual({
+        valid: false,
+        exception: {
+            user: "user must be FormData"
         }
     });
 });

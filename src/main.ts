@@ -25,12 +25,24 @@ type Inputs<T> = {
   [K in keyof T]: RULE_RESULT<T[K]>
 }
 
+/**
+ * Rules for validating inputs
+ * 
+ * @description
+ * - Validate inputs
+ * - Return validation result
+ * 
+ * @returns {RULE_RESULT}
+ */
 export class Rule {
   static string(i: any): RULE_RESULT<string> {
-    if(typeof i === "string" && i.length > 0) {
-      return [true, i, undefined] as VALID_RULS_RESULT<string>;
+    if(typeof i !== "string") {
+      return [false, i, "$ must be string"] as INVALID_RULS_RESULT;
     }
-    return [false, i, "$ must be string"] as INVALID_RULS_RESULT;
+    if(i.trim().length === 0) {
+      return [false, i, "$ cannot be empty"] as INVALID_RULS_RESULT;
+    }
+    return [true, i, undefined] as VALID_RULS_RESULT<string>;
   }
 
   static number(i: any, opt?: { min?: number, max?: number}): RULE_RESULT<number> {
@@ -71,11 +83,12 @@ export class Rule {
   }
 
   static email(i: any): RULE_RESULT<string> {
-    if(typeof i !== "string") {
-      return [false, i, "$ must be string"] as INVALID_RULS_RESULT;
+    if(typeof i !== "string" || i.trim().length === 0) {
+      return [false, i, "$ must be valid email address"] as INVALID_RULS_RESULT;
     }
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if(!emailRegex.test(i)) {
+    if (!emailRegex.test(i)) {
       return [false, i, "$ must be valid email address"] as INVALID_RULS_RESULT;
     }
     return [true, i, undefined] as VALID_RULS_RESULT<string>;
@@ -263,21 +276,27 @@ export class Rule {
     return [true, i, undefined] as VALID_RULS_RESULT<object>;
   }
 
-  static shape<T extends object>(i: any, shape: { [K in keyof T]: (value: unknown) => RULE_RESULT<unknown> }): RULE_RESULT<T> {
+  static shape<T extends Record<string, unknown>>(
+    i: T,
+    shape: { [K in keyof T]: (value: unknown) => RULE_RESULT<T[K]> }
+  ): RULE_RESULT<T> {
     if(typeof i !== "object" || i === null) {
       return [false, i, "$ must be object"] as INVALID_RULS_RESULT;
     }
 
     const errors: string[] = [];
+    const validatedData = {} as T;
+
     for(const [key, validator] of Object.entries(shape)) {
       if(!(key in i)) {
         errors.push(`Missing required property: ${key}`);
         continue;
       }
-      /** @ts-ignore  */
-      const result = validator(i[key])
+      const result = validator(i[key]);
       if(!result[0]) {
         errors.push(`${key}: ${result[2]}`);
+      } else {
+        validatedData[key as keyof T] = result[1] as T[keyof T];
       }
     }
 
@@ -285,7 +304,38 @@ export class Rule {
       return [false, i, errors.join('; ')] as INVALID_RULS_RESULT;
     }
 
-    return [true, i, undefined] as VALID_RULS_RESULT<T>;
+    return [true, validatedData, undefined] as VALID_RULS_RESULT<T>;
+  }
+
+  static formData<T extends object>(
+    formData: FormData,
+    shape: { [K in keyof T]: (value: FormDataEntryValue | null) => RULE_RESULT<T[K]> }
+  ): RULE_RESULT<T> {
+    if(!(formData instanceof FormData)) {
+      return [false, formData, "$ must be FormData"] as INVALID_RULS_RESULT;
+    }
+
+    const errors: string[] = [];
+    const validatedData = {} as T;
+
+    for(const [key, validator] of Object.entries(shape)) {
+      const value = formData.get(key);
+      /** @ts-ignore */
+      const result = validator(value) as RULE_RESULT<T[keyof T]>;
+      if(!result[0]) {
+        // Replace $ with the actual field name in the error message
+        const errorMessage = result[2].replace(/\$/g, key);
+        errors.push(errorMessage);
+      } else {
+        validatedData[key as keyof T] = result[1] as T[keyof T];
+      }
+    }
+
+    if(errors.length > 0) {
+      return [false, formData, errors.join('; ')] as INVALID_RULS_RESULT;
+    }
+
+    return [true, validatedData, undefined] as VALID_RULS_RESULT<T>;
   }
 
   static nullable<T>(validator: (value: any) => RULE_RESULT<T>): (value: any) => RULE_RESULT<T | null> {
@@ -376,6 +426,13 @@ export class Rule {
   }
 }
 
+/**
+ * Validation Executor
+ * @description
+ * - Execute validations
+ * - Return validation result
+ * @returns {Validate}
+ */
 export class Validate<T extends object> {
   public result = {} as SUCESS_RESULT<T> | FAILED_RESULT<T>;
   constructor(input: Inputs<T>) {
