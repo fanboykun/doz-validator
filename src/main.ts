@@ -1,11 +1,12 @@
 // deno-lint-ignore-file no-explicit-any
 type Prettify<T> = {
   [K in keyof T]: T[K]
+// deno-lint-ignore ban-types
 } & {};
 
-type VALID_RULS_RESULT<T> = [true, T, undefined]
-type INVALID_RULS_RESULT = [false, unknown, string]
-type RULE_RESULT<T> =  VALID_RULS_RESULT<T> | INVALID_RULS_RESULT;
+type VALID_RULS_RESULT<T> = [true, T, undefined];
+type INVALID_RULS_RESULT = [false, unknown, string];
+type RULE_RESULT<T> = VALID_RULS_RESULT<T> | INVALID_RULS_RESULT;
 
 type SUCESS_RESULT<T> = {
   valid: true,
