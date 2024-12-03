@@ -1,0 +1,19 @@
+{
+  "name": "@fanboykun/doz",
+  "version": "1.0.0",
+  "exports": "./src/main.ts",
+  "description": "A powerful, type-safe validation library for TypeScript with zero dependencies",
+  "keywords": [
+    "validation",
+    "validator",
+    "typescript",
+    "form-validation",
+    "type-safe",
+    "schema"
+  ],
+  "license": "MIT",
+  "repository": "https://github.com/fanboykun/doz",
+  "tasks": {
+    "test": "deno test --allow-all"
+  }
+}

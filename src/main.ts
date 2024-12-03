@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 type Prettify<T> = {
   [K in keyof T]: T[K]
 } & {};
@@ -33,7 +34,7 @@ export class Rule {
   }
 
   static number(i: any, opt?: { min?: number, max?: number}) {
-    if(typeof i !== "number" && isNaN(i as number)) {
+    if(typeof i !== "number" || isNaN(i)) {
       return [false, i, "$ must be number"] as INVALID_RULS_RESULT;
     }
     if(opt) {
@@ -273,8 +274,8 @@ export class Rule {
         errors.push(`Missing required property: ${key}`);
         continue;
       }
-      /** @ts-ignore */
-      const result = validator(i[key]);
+      /** @ts-ignore  */
+      const result = validator(i[key])
       if(!result[0]) {
         errors.push(`${key}: ${result[2]}`);
       }
@@ -285,6 +286,93 @@ export class Rule {
     }
 
     return [true, i, undefined] as VALID_RULS_RESULT<T>;
+  }
+
+  static nullable<T>(validator: (value: any) => RULE_RESULT<T>) {
+    return (value: any): RULE_RESULT<T | null> => {
+      if (value === null) {
+        return [true, null, undefined] as VALID_RULS_RESULT<null>;
+      }
+      return validator(value);
+    };
+  }
+
+  static optional<T>(validator: (value: any) => RULE_RESULT<T>) {
+    return (value: any): RULE_RESULT<T | undefined> => {
+      if (value === undefined) {
+        return [true, undefined, undefined] as VALID_RULS_RESULT<undefined>;
+      }
+      return validator(value);
+    };
+  }
+
+  static ip(i: any, allowLocal = true) {
+    if (typeof i !== "string") {
+      return [false, i, "$ must be string"] as INVALID_RULS_RESULT;
+    }
+
+    // IPv4 validation
+    const ipv4Regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+    const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::$|^::1$|^([0-9a-fA-F]{1,4}:){1,7}:|^:([0-9a-fA-F]{1,4}:){1,6}|^([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|^([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|^([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|^([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|^[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|^:((:[0-9a-fA-F]{1,4}){1,7}|:)$/;
+
+    const isIPv4 = ipv4Regex.test(i);
+    const isIPv6 = ipv6Regex.test(i);
+
+    if (!isIPv4 && !isIPv6) {
+      return [false, i, "$ must be valid IPv4 or IPv6 address"] as INVALID_RULS_RESULT;
+    }
+
+    if (!allowLocal) {
+      // Check for local IPv4 addresses
+      if (isIPv4) {
+        const parts = i.split(".");
+        if (
+          parts[0] === "127" || // localhost
+          parts[0] === "10" || // private network
+          (parts[0] === "172" && parseInt(parts[1]) >= 16 && parseInt(parts[1]) <= 31) || // private network
+          (parts[0] === "192" && parts[1] === "168") // private network
+        ) {
+          return [false, i, "$ must not be a local IP address"] as INVALID_RULS_RESULT;
+        }
+      }
+      // Check for local IPv6 addresses
+      if (isIPv6) {
+        const lowercaseIP = i.toLowerCase();
+        if (
+          lowercaseIP === "::1" || // localhost
+          lowercaseIP.startsWith("fc00:") || // unique local address
+          lowercaseIP.startsWith("fd") || // unique local address
+          lowercaseIP.startsWith("fe80:") // link-local address
+        ) {
+          return [false, i, "$ must not be a local IP address"] as INVALID_RULS_RESULT;
+        }
+      }
+    }
+
+    return [true, i, undefined] as VALID_RULS_RESULT<string>;
+  }
+
+  static instanceOf(i: any, ...constructors: (new (...args: any[]) => any)[]) {
+    for (const constructor of constructors) {
+      if (i instanceof constructor) {
+        return [true, i, undefined] as VALID_RULS_RESULT<any>;
+      }
+    }
+    const constructorNames = constructors.map(c => c.name).join(" or ");
+    return [false, i, `$ must be instance of ${constructorNames}`] as INVALID_RULS_RESULT;
+  }
+
+  static uuidv4(i: any) {
+    if (typeof i !== "string") {
+      return [false, i, "$ must be string"] as INVALID_RULS_RESULT;
+    }
+
+    const uuidv4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidv4Regex.test(i)) {
+      return [false, i, "$ must be a valid UUIDv4"] as INVALID_RULS_RESULT;
+    }
+
+    return [true, i, undefined] as VALID_RULS_RESULT<string>;
   }
 }
 
@@ -307,7 +395,7 @@ export class Validate<T extends object> {
       else {
         this.result.exception = {
           ...this.result.exception,
-          [key]: exception?.replace("$", key)
+          [key]: exception?.replaceAll("$", key)
         }
       }
       // console.log( { status } )
