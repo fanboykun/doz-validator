@@ -1,6 +1,6 @@
-import { Doz, Rule } from "./main.ts";
+import { Rule, Validate } from "../src/main.ts";
 
-const validation = new Doz({
+const validation = new Validate({
     name: Rule.string("Josh"),
     age: Rule.number(17, { min: 0, max: 100 }),
     isAdmin: Rule.boolean(true),
@@ -23,12 +23,5 @@ const validation = new Doz({
       state: (value) => Rule.string(value),
       zip: (value) => Rule.string(value),
     }),
-  });
-  
-  if(validation.result.valid) {
-    const data = validation.result.data;
-    console.log({data});
-  } else {
-    const exception = validation.result.exception;
-    console.log({exception});
-  }
+});
+console.log({validation})

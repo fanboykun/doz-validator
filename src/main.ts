@@ -288,12 +288,16 @@ export class Rule {
   }
 }
 
-export class Doz<T extends object> {
+export class Validate<T extends object> {
   public result = {} as SUCESS_RESULT<T> | FAILED_RESULT<T>;
   constructor(input: Inputs<T>) {
+    let status: 'unresolved' | 'success' | 'failed' = 'unresolved'
     for(const [key, validation ] of Object.entries(input)) {
       const [valid, input, exception] = validation as RULE_RESULT<T[keyof T]>;
-      this.result.valid = valid
+      if(status === 'unresolved') {
+        status = valid ? 'success' : 'failed';
+        this.result.valid = valid
+      }
       if(this.result.valid) {
         this.result.data = {
           ...this.result.data,
@@ -306,6 +310,7 @@ export class Doz<T extends object> {
           [key]: exception?.replace("$", key)
         }
       }
+      // console.log( { status } )
     }
   }
 }
