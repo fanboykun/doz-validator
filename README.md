@@ -1,5 +1,7 @@
+# Important: You should just use a validation/schema validation library that follows <a href="https://github.com/standard-schema/standard-schema"> standard schema </a> like <a href="https://zod.dev/"> Zod </a>. This project is just a way i use to learn typescript
+
 # Doz Validator
-## Don't use this, this is just the way i lean typescript
+
 
 A powerful, type-safe validation library for TypeScript/JavaScript with zero
 dependencies.
