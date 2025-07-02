@@ -1,4 +1,5 @@
 # Doz Validator
+## Don't use this, this is just the way i lean typescript
 
 A powerful, type-safe validation library for TypeScript/JavaScript with zero
 dependencies.
